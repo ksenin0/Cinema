@@ -1,0 +1,51 @@
+{% extends 'cashier/base.html' %}{% load static %}
+{% block scripts %}<script src="{% static 'cashier/cashier.js' %}" defer></script>{% endblock %}
+{% block content %}
+<main id="main" class="workspace" data-time-zone="{{ time_zone }}"
+ data-schedule-url="{% url 'cashier:schedule' %}" data-recent-url="{% url 'cashier:recent-sales' %}" data-login-url="{% url 'cashier:login' %}">
+  <div class="page-heading"><div><span class="eyebrow">РАБОЧЕЕ МЕСТО КАССИРА</span><h1>Билеты на большой экран</h1></div><span class="demo-badge">Учебная касса · без списания денег</span></div>
+  <div class="view-tabs" role="group" aria-label="Разделы кассы">
+    <button id="show-sales" type="button" class="tab active" aria-pressed="true">Продажа билетов</button>
+    <button id="show-checkin" type="button" class="tab" aria-pressed="false">Проверка QR</button>
+  </div>
+  <div id="message" role="status" aria-live="polite" aria-atomic="true" class="notice" hidden></div>
+  <noscript><p class="notice error">Для выбора мест и продажи включите JavaScript в браузере.</p></noscript>
+  <section id="sales-view" aria-label="Продажа билетов">
+    <div class="sales-grid">
+      <aside class="panel schedule-panel">
+        <div class="section-title"><h2><span class="step">01</span> Сеанс</h2><button id="refresh-schedule" class="text-button" type="button">Обновить</button></div>
+        <label for="session-date">Дата<select id="session-date" disabled><option>Загрузка…</option></select></label>
+        <label for="session-search">Фильм или зал<input id="session-search" type="search" placeholder="Поиск в расписании" autocomplete="off"></label>
+        <div id="session-list" class="session-list" aria-label="Доступные сеансы"><p class="empty">Загружаем расписание…</p></div>
+      </aside>
+      <section class="panel hall-panel" aria-labelledby="hall-heading">
+        <div class="section-title"><h2 id="hall-heading"><span class="step">02</span> Места в зале</h2><button id="refresh-map" class="text-button" disabled type="button">Обновить схему</button></div>
+        <h3 id="movie-title">Выберите сеанс слева</h3><p id="session-details" class="muted">Сначала фильм и время, затем — места.</p>
+        <div class="screen" aria-hidden="true"><span>ЭКРАН</span></div>
+        <div id="seat-map" class="seat-map" tabindex="0" aria-label="Схема зала"><p class="empty">Здесь появятся свободные места</p></div>
+        <div class="legend"><span><i class="key free"></i>Свободно</span><span><i class="key vip">V</i>VIP</span><span><i class="key chosen">✓</i>Выбрано</span><span><i class="key occupied">×</i>Занято</span><span><i class="key held">Б</i>Бронь</span><span><i class="key accessible">М</i>МГН</span></div>
+        <p id="map-status" class="small muted">Места проверяются каждые 5 секунд. Выбор сохраняется при оформлении продажи.</p>
+      </section>
+      <aside class="panel cart-panel" aria-labelledby="cart-heading">
+        <div class="section-title"><h2 id="cart-heading"><span class="step">03</span> Продажа</h2><button id="clear-selection" class="text-button" disabled type="button">Очистить</button></div>
+        <p id="cart-session" class="small muted">Выберите места на схеме</p>
+        <ul id="cart-items" class="cart-items"><li class="empty">Нажмите на свободное кресло</li></ul>
+        <div class="total"><div><span>К оплате</span><small id="ticket-count">0 билетов</small></div><strong id="total-price">0 ₽</strong></div>
+        <div class="payment-buttons"><button id="pay-cash" class="primary" disabled type="button">Наличные</button><button id="pay-card" class="secondary" disabled type="button">Карта</button></div>
+        <p class="small muted">Кнопка сразу оформляет продажу и выдаёт билеты. Оплата демонстрационная: реквизиты и почта покупателя не нужны.</p>
+        <p class="small muted">До 20 билетов в одной продаже.</p>
+      </aside>
+    </div>
+    <section id="issued-sale" class="panel issued-sale" aria-labelledby="issued-heading" hidden tabindex="-1"><div class="section-title"><div><span class="eyebrow success-text">ПРОДАЖА ОФОРМЛЕНА</span><h2 id="issued-heading">Билеты готовы</h2></div><button id="close-issued" type="button" class="text-button">Скрыть билеты</button></div><div id="issued-details"></div><div id="issued-tickets" class="issued-tickets"></div></section>
+    <section class="panel history-panel" aria-labelledby="history-heading"><div class="section-title"><div><h2 id="history-heading">Мои последние продажи</h2><p class="small muted">До 20 оплаченных кассовых заказов. Билеты можно открыть повторно.</p></div><button id="refresh-history" class="text-button" type="button">Обновить продажи</button></div><div id="recent-sales"><p class="empty">Загружаем продажи…</p></div></section>
+  </section>
+  <section id="checkin-view" class="panel checkin-panel" hidden aria-labelledby="checkin-heading">
+    <span class="eyebrow">КОНТРОЛЬ ВХОДА</span><h2 id="checkin-heading">Проверка QR-билета</h2>
+    <p class="muted">Подключите QR-сканер как клавиатуру или вставьте содержимое QR-кода. После успешной проверки билет отмечается использованным.</p>
+    <form id="checkin-form" class="stack"><label for="qr-payload">Содержимое QR-кода<input id="qr-payload" name="payload" required maxlength="2048" autocomplete="off" spellcheck="false" placeholder="Отсканируйте билет"></label><button id="checkin-submit" type="submit" class="primary">Проверить и отметить вход</button></form>
+    <p class="small muted">Вход открывается за 30 минут до начала и закрывается после окончания сеанса. Повторный вход по одному билету запрещён.</p>
+    <div id="checkin-result" class="notice" role="status" aria-live="polite" hidden></div>
+  </section>
+  <div hidden>{% csrf_token %}</div>
+</main>
+{% endblock %}

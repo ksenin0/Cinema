@@ -1,0 +1,1 @@
+{% extends 'staff/base.html' %}{% block content %}<section class="panel editor"><h2>{{ object }}</h2><p class="muted">{{ explanation }}</p><form method="post">{% csrf_token %}<div class="actions"><button class="primary">Подтвердить действие</button><a class="button secondary" href="{{ back_url }}">Вернуться</a></div></form></section>{% endblock %}

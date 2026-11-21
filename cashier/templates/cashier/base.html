@@ -1,0 +1,23 @@
+{% load static %}<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark">
+  <title>{% block title %}Касса · Кинотеатр{% endblock %}</title>
+  <link rel="stylesheet" href="{% static 'cashier/cashier.css' %}">
+  {% block scripts %}{% endblock %}
+</head>
+<body>
+  <a class="skip-link" href="#main">К содержимому</a>
+  <header class="topbar">
+    <a class="brand" href="{% url 'cashier:index' %}"><span class="brand-mark" aria-hidden="true">К</span>КИНОТЕАТР <span class="brand-divider">/</span><span class="brand-sub">Касса</span></a>
+    <nav aria-label="Сотрудник">
+      {% if user.is_authenticated %}<span class="employee">{{ user.get_full_name|default:user.username }}</span>{% endif %}
+      {% if user.is_superuser or user.role == 'admin' %}<a href="{% url 'staff:home' %}">Управление</a>{% endif %}
+      {% if user.is_authenticated %}<form method="post" action="{% url 'cashier:logout' %}">{% csrf_token %}<button class="text-button" type="submit">Выйти</button></form>{% endif %}
+    </nav>
+  </header>
+  {% block content %}{% endblock %}
+</body>
+</html>

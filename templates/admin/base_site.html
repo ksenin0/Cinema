@@ -1,0 +1,4 @@
+{% extends "admin/base.html" %}
+{% block title %}{{ title }} | {{ site_title|default:_("Django site admin") }}{% endblock %}
+{% block branding %}<div id="site-name"><a href="{% url 'admin:index' %}">{{ site_header }}</a></div>{% endblock %}
+{% block nav-global %}{% if user.is_superuser or user.role == 'admin' %}<a href="{% url 'staff:home' %}" style="color:inherit; margin:0 24px">Рабочий стол →</a>{% endif %}<a href="{% url 'cashier:index' %}" style="color:inherit; margin:0 24px; white-space:nowrap">Открыть кассу →</a>{% endblock %}

@@ -1,0 +1,4 @@
+flet[all]==0.84.0
+httpx==0.28.1
+# Flet 0.84's optional browser server uses FastAPI's legacy openapi_prefix argument.
+fastapi==0.115.12

@@ -1,0 +1,18 @@
+{% extends 'cashier/base.html' %}{% load static %}
+{% block title %}Билеты к заказу · Кинотеатр{% endblock %}
+{% block scripts %}<script src="{% static 'cashier/receipt.js' %}" defer></script>{% endblock %}
+{% block content %}<main id="main" class="receipt-page">
+  <div class="receipt-toolbar"><a class="secondary button" href="{% url 'cashier:index' %}">← В кассу</a><button class="primary" id="print-tickets" type="button">Распечатать билеты</button></div>
+  <h1>Билеты к заказу</h1><p class="small muted">{{ order.id }}</p>
+  <p>Оплачено: <strong>{{ order.total_price }} ₽</strong> · {{ order.payment.get_method_display }} · Учебная оплата</p>
+  <div class="receipt-tickets">{% for ticket in order.tickets.all %}<article class="paper-ticket">
+    <span class="eyebrow">КИНОТЕАТР · ЭЛЕКТРОННЫЙ БИЛЕТ</span><h2>{{ ticket.session.movie.title }}</h2>
+    <p>{{ ticket.session.start_datetime|date:'d.m.Y H:i' }} · {{ ticket.session.hall.name }}</p>
+    <h3>Ряд {{ ticket.seat.row_number }} · Место {{ ticket.seat.seat_number }}</h3><p>{{ ticket.price }} ₽</p>
+    {% if ticket.is_active %}<img width="180" height="180" src="/api/v1/tickets/{{ ticket.id }}/download/?export=qr" alt="QR-код билета, ряд {{ ticket.seat.row_number }}, место {{ ticket.seat.seat_number }}">
+    {% if ticket.is_checked_in %}<p>Вход уже отмечен</p>{% endif %}
+    <div class="ticket-links"><a href="/api/v1/tickets/{{ ticket.id }}/download/?export=pdf">Скачать PDF</a><a href="/api/v1/tickets/{{ ticket.id }}/download/?export=png">Скачать PNG</a></div>
+    {% else %}<p>Билет недействителен</p>{% endif %}<p class="ticket-id">{{ ticket.id }}</p>
+  </article>{% endfor %}</div>
+  <p class="small muted">Демонстрационный билет для курсовой работы. Реальные платежи не выполняются.</p>
+</main>{% endblock %}
